@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dsp-clone-job-test5-argocd-gitops
+spec:  
+  template:         
+    metadata:
+      name: dsp-clone-job-test5-argocd-gitops
+    spec:  
+      serviceAccountName: test5-argocd-dsp-job
+      containers:
+      - name: initialize-dsp
+        image: quay.io/redhat-ai-dev/appstudio-utils:5bd7d6cb0b17f9f2eab043a8ad16ba3d90551bc2
+        command:
+        - /bin/bash
+        - -c
+        - |
+          NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+          oc wait -l statefulset=test5-argocd-notebook --for=condition=ready pod --timeout=300s
+          oc exec  StatefulSet/test5-argocd-notebook -- git clone https://github.com/jdubrick-ai/test5-argocd
+      restartPolicy: Never
